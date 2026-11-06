@@ -248,9 +248,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
     renderList();
   });});
   window.addEventListener('hashchange',route);
-  // The API endpoint is an independent public-only Apps Script deployment.
-  // The callback is fixed server-side; no user-controlled JSONP callback names.
-  var apiUrl = 'https://script.google.com/macros/s/AKfycbxjkmPqyIEj-2B24HUDJuKqhrfhs51eHvHyOb8AXtjVYnQSqk0pAZqpv7hwoyf2HmL8XA/exec';
+  // GATE-02 TEST: immutable publicly reviewed snapshot on this origin.
+  // Live Sheet changes require publishing an updated snapshot; no cross-origin Google call.
+  var snapshotSrc = './catalog-snapshot.js';
   var arrived = false;
   window.__intercarsDataReady = function(snapshot) {
     arrived = true;
@@ -264,16 +264,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
     locations.forEach(function(name) {var option=node('option','',name); option.value=name; els.location.appendChild(option);});
     renderList();route();
   };
-  if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(apiUrl)) {
-    els.status.textContent='Тестовата връзка към данните още не е настроена.';
-    return;
-  }
   var tag = node('script');
   tag.async = true;
-  tag.src = apiUrl;
-  tag.onerror = function() { if (!arrived) els.status.textContent='Временно не можем да заредим каталога.'; };
+  tag.src = snapshotSrc;
+  tag.onerror = function() { if (!arrived) els.status.textContent='Публичните тестови данни не се заредиха.'; };
   document.head.appendChild(tag);
-  setTimeout(function(){if(!arrived) els.status.textContent='Каталогът не отговори. Опитайте отново.';}, 15000);
+  setTimeout(function(){if(!arrived) els.status.textContent='Публичните тестови данни не отговориха.';}, 15000);
 })();
 </script>
 </body>
