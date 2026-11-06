@@ -1,0 +1,26 @@
+name: Intercars sync verification (no deploy)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/**'
+      - 'index.html'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Local validation checks
+        run: node --test scripts/public-sync.test.mjs
+      - name: Verify real public API from GitHub runner (do not publish)
+        run: node scripts/public-sync.mjs
