@@ -131,7 +131,7 @@ export async function fetchPublicAPI(url=DEFAULT_PUBLIC_API_URL, fetcher=fetch) 
   requireValue(response.ok,'API_HTTP_'+response.status);
   const final=new URL(response.url || url);
   requireValue(final.protocol==='https:' && ['script.google.com','script.googleusercontent.com'].includes(final.hostname),
-    'API_REDIRECT_NOT_APPROVED');
+    'API_REDIRECT_NOT_APPROVED_HOST_'+final.hostname);
   const pieces=[];let size=0;
   for await (const chunk of response.body) {
     size+=chunk.byteLength;
