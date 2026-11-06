@@ -1,0 +1,53 @@
+name: Intercars public catalog sync and deploy
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17,47 * * * *' # UTC; approx every 30 min, GitHub may delay jobs
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/public-sync.mjs'
+      - 'scripts/public-sync.test.mjs'
+      - '.github/workflows/publish-public-catalog.yml'
+
+# No GitHub PAT and no GitHub content-write access. Deployment through Pages artifact.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: intercars-public-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout public catalog
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate public projection rules
+        run: node --test scripts/public-sync.test.mjs
+      - name: Read, validate, and stage current public Google data
+        env:
+          PUBLIC_API_URL: https://script.google.com/macros/s/AKfycbxjkmPqyIEj-2B24HUDJuKqhrfhs51eHvHyOb8AXtjVYnQSqk0pAZqpv7hwoyf2HmL8XA/exec
+        run: node scripts/public-sync.mjs
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload validated site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publish validated site
+        id: deployment
+        uses: actions/deploy-pages@v4
